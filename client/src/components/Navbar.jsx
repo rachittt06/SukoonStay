@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { useClerk } from "@clerk/clerk-react";
 
+
 const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
