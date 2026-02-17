@@ -1,17 +1,24 @@
-import React from 'react'
-import { roomsDummyData } from '../assets/assets'
-import HotelCard from './HotelCard'
+import React from "react";
+import { roomsDummyData } from "../assets/assets";
+import HotelCard from "./HotelCard";
 
 const FeatureDestination = () => {
   return (
-    <div>
-        <div>
-          {roomsDummyData.slice(0,4).map((room, index)=>(
-              <HotelCard key={room._id} room={room} index={index}/>
-          ))}
-        </div>
-    </div>
-  )
-}
+    <div className="w-full px-6 py-12">
 
-export default FeatureDestination
+      <h2 className="text-2xl font-semibold mb-8">
+        Featured Destinations
+      </h2>
+
+      {/* FULL WIDTH VERTICAL LIST */}
+      <div className="w-full flex flex-col gap-8">
+        {roomsDummyData.map((room) => (
+          <HotelCard key={room._id} room={room} />
+        ))}
+      </div>
+
+    </div>
+  );
+};
+
+export default FeatureDestination;
