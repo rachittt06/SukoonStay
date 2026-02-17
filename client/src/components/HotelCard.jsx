@@ -18,7 +18,6 @@ const HotelCard = ({ room }) => {
             className="w-full h-full object-cover"
           />
         </div>
-
         {/* CONTENT RIGHT */}
         <div className="flex flex-col justify-between w-full p-6">
 
