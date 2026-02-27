@@ -1,22 +1,22 @@
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
-import RoomDetails from "./pages/RoomDetails";
+import AllRooms from "./pages/AllRooms";
 
 const App = () => {
-  const location = useLocation();
-  const isOwnerPath = location.pathname.includes("owner");
+  const isOwnerPath = useLocation().pathname.includes("owner");
 
   return (
     <div>
       {!isOwnerPath && <Navbar />}
-
       <div className="min-h-[70vh]">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/rooms/:id" element={<RoomDetails />} />
+          <Route path='/rooms' element={<AllRooms />} />
         </Routes>
       </div>
+      <Footer />
     </div>
   );
 };
