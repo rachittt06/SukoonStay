@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { roomsDummyData, facilityIcons } from "../assets/assets";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import StarRating from "../components/StarRating";
 
 const CheckBox = ({ label, selected = false, onChange = () => {} }) => {
@@ -32,6 +32,12 @@ const RadioButton = ({ label, selected = false, onChange = () => {} }) => {
 
 const AllRooms = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const destination = searchParams.get("destination") || "";
+  const checkIn = searchParams.get("checkIn") || "";
+  const checkOut = searchParams.get("checkOut") || "";
+  const guests = searchParams.get("guests") || "";
 
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedPrices, setSelectedPrices] = useState([]);
@@ -77,6 +83,13 @@ const AllRooms = () => {
   const filteredRooms = useMemo(() => {
     let filtered = [...roomsDummyData];
 
+    // ✅ Destination filter from URL param
+    if (destination) {
+      filtered = filtered.filter((room) =>
+        room.hotel?.city?.toLowerCase().includes(destination.toLowerCase())
+      );
+    }
+
     // ✅ Room Type Filter
     if (selectedTypes.length > 0) {
       filtered = filtered.filter((room) =>
@@ -111,7 +124,7 @@ const AllRooms = () => {
     }
 
     return filtered;
-  }, [selectedTypes, selectedPrices, sortBy]);
+  }, [selectedTypes, selectedPrices, sortBy, destination]);
 
   const clearFilters = () => {
     setSelectedTypes([]);

@@ -8,15 +8,22 @@ const RoomDetails = () => {
   const [room, setRoom] = useState(null);
   const [mainImage, setMainImage] = useState(null);
 
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState(1);
+
   useEffect(() => {
     const foundRoom = roomsDummyData.find((room) => room._id === id);
-    if (foundRoom) {
-      setRoom(foundRoom);
-      setMainImage(foundRoom.images?.[0]);
-    }
+    if (!foundRoom) return;
+
+    setRoom(foundRoom);
+    setMainImage(foundRoom.images?.[0] || null);
   }, [id]);
+
   if (!room)
     return <div className="pt-40 text-center">Room not found</div>;
+
+  const today = new Date().toISOString().split("T")[0];
 
   const facilityIcons = {
     "Free WiFi": assets.wifiIcon,
@@ -30,6 +37,24 @@ const RoomDetails = () => {
     TV: assets.tvIcon,
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!checkIn || !checkOut) {
+      alert("Please select check-in and check-out dates");
+      return;
+    }
+
+    if (new Date(checkOut) <= new Date(checkIn)) {
+      alert("Check-out date must be after check-in date");
+      return;
+    }
+
+    alert(
+      `Checking availability for ${guests} guest(s)\nFrom: ${checkIn}\nTo: ${checkOut}`
+    );
+  };
+
   return (
     <div className="py-28 md:py-32 px-4 md:px-16 lg:px-24 xl:px-32">
 
@@ -37,10 +62,7 @@ const RoomDetails = () => {
       <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
         <h1 className="text-3xl md:text-4xl font-playfair">
           {room.hotel?.name}
-          <span className="font-inter text-sm">
-            {" "}
-            ({room.roomType})
-          </span>
+          <span className="font-inter text-sm"> ({room.roomType})</span>
         </h1>
         <p className="text-xs font-inter py-1.5 px-3 text-white bg-orange-500 rounded-full">
           20% OFF
@@ -112,14 +134,16 @@ const RoomDetails = () => {
           </div>
         </div>
 
-        {/* ✅ Indian Currency */}
         <p className="text-2xl font-semibold text-gray-800">
           ₹{room.pricePerNight} / night
         </p>
       </div>
 
       {/* Booking Form */}
-      <form className="bg-white shadow-xl p-6 rounded-2xl mx-auto mt-16 max-w-6xl">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-xl p-6 rounded-2xl mx-auto mt-16 max-w-6xl"
+      >
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
 
           <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
@@ -128,6 +152,9 @@ const RoomDetails = () => {
               <label className="font-medium text-sm">Check-In</label>
               <input
                 type="date"
+                min={today}
+                value={checkIn}
+                onChange={(e) => setCheckIn(e.target.value)}
                 className="rounded border border-gray-300 px-4 py-2 mt-2 outline-none"
                 required
               />
@@ -139,6 +166,9 @@ const RoomDetails = () => {
               <label className="font-medium text-sm">Check-Out</label>
               <input
                 type="date"
+                min={checkIn || today}
+                value={checkOut}
+                onChange={(e) => setCheckOut(e.target.value)}
                 className="rounded border border-gray-300 px-4 py-2 mt-2 outline-none"
                 required
               />
@@ -151,7 +181,8 @@ const RoomDetails = () => {
               <input
                 type="number"
                 min="1"
-                defaultValue="1"
+                value={guests}
+                onChange={(e) => setGuests(e.target.value)}
                 className="rounded border border-gray-300 px-4 py-2 mt-2 outline-none w-24"
                 required
               />
@@ -176,9 +207,7 @@ const RoomDetails = () => {
             <img src={spec.icon} alt="icon" className="w-6" />
             <div>
               <p className="text-base font-medium">{spec.title}</p>
-              <p className="text-gray-500 text-sm">
-                {spec.description}
-              </p>
+              <p className="text-gray-500 text-sm">{spec.description}</p>
             </div>
           </div>
         ))}
@@ -189,11 +218,7 @@ const RoomDetails = () => {
         <p>
           Guests will be allocated on the ground floor according to
           availability. You get a comfortable two bedroom apartment
-          that has a true city feeling. The price quoted is for two
-          guests. At the guest slot please mark the number of guests
-          to get the exact price for groups. The apartment is located
-          in the heart of the city and is perfectly connected by
-          public transport.
+          that has a true city feeling.
         </p>
       </div>
 
@@ -207,8 +232,7 @@ const RoomDetails = () => {
           />
           <div>
             <p className="text-lg md:text-xl font-medium">
-              Hosted by{" "}
-              {room.hotel?.owner?.name || room.hotel?.name}
+              Hosted by {room.hotel?.owner?.name || room.hotel?.name}
             </p>
             <div className="flex items-center mt-1">
               <StarRating rating={room.rating} />

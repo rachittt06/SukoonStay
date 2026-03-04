@@ -1,12 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import { assets } from "../assets/assets"; // ✅ import assets
+import { useNavigate } from "react-router-dom"; // Added
 
 const cities = ["Delhi", "Mumbai", "Goa", "Jaipur", "Bangalore"]; // ✅ define cities
 
 const Hero = () => {
+  const navigate = useNavigate(); // Added
+
+  // Added controlled states for inputs
+  const [destination, setDestination] = useState("");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState(1);
+
+  // Added form submit handler
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const params = new URLSearchParams();
+    if (destination) params.append("destination", destination);
+    if (checkIn) params.append("checkIn", checkIn);
+    if (checkOut) params.append("checkOut", checkOut);
+    if (guests) params.append("guests", guests);
+
+    navigate(`/rooms?${params.toString()}`);
+  };
+
   return (
     <div
-      className='flex flex-col items-start justify-center px-6 md:px-16 lg:px-24 xl:px-32 text-white bg-[url("/src/assets/heroImage.png")] bg-no-repeat bg-cover bg-center h-screen'
+      className='flex flex-col items-start justify-center px-6 md:px-16 lg:px-24 xl:px-32 text-white bg-[url("/src/assets/Heroo.png")] bg-no-repeat bg-cover bg-center h-screen'
     >
       <p className='bg-[#49B9FF]/50 text-sm px-4 py-1 rounded-full mt-20'>
         The Ultimate Hotel Experience
@@ -21,7 +43,11 @@ const Hero = () => {
         Start your journey today.
       </p>
 
-      <form className='bg-white text-gray-500 rounded-lg px-6 py-4 mt-8 flex flex-col md:flex-row gap-4 mt-6 max-md:w-full'>
+      {/* Added onSubmit and changed inputs to controlled */}
+      <form
+        onSubmit={handleSubmit}
+        className='bg-white text-gray-500 rounded-lg px-6 py-4 mt-8 flex flex-col md:flex-row gap-4 mt-6 max-md:w-full'
+      >
 
         {/* Destination */}
         <div>
@@ -34,6 +60,8 @@ const Hero = () => {
             list='destinations'
             id="destinationInput"
             type="text"
+            value={destination} // Controlled input
+            onChange={(e) => setDestination(e.target.value)} // Controlled input
             className="rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none"
             placeholder="Type here"
             required
@@ -55,7 +83,10 @@ const Hero = () => {
           <input
             id="checkIn"
             type="date"
+            value={checkIn} // Controlled input
+            onChange={(e) => setCheckIn(e.target.value)} // Controlled input
             className="rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none"
+            required
           />
         </div>
 
@@ -68,7 +99,10 @@ const Hero = () => {
           <input
             id="checkOut"
             type="date"
+            value={checkOut} // Controlled input
+            onChange={(e) => setCheckOut(e.target.value)} // Controlled input
             className="rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none"
+            required
           />
         </div>
 
@@ -80,8 +114,10 @@ const Hero = () => {
             max={4}
             id="guests"
             type="number"
+            value={guests} // Controlled input
+            onChange={(e) => setGuests(e.target.value)} // Controlled input
             className="rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none max-w-16"
-            defaultValue={1}
+            required
           />
         </div>
 

@@ -120,6 +120,59 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Mobile Menu (Add this) */}
+      {isMenuOpen && (
+        <div className="md:hidden fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center gap-8 text-white z-50">
+
+          {/* Close Button */}
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="absolute top-6 right-6 text-white text-3xl font-bold"
+            aria-label="Close menu"
+          >
+            &times;
+          </button>
+
+          {/* Links */}
+          {navLinks.map((item, i) => (
+            <Link
+              key={i}
+              to={item.path}
+              onClick={() => setIsMenuOpen(false)}
+              className="text-2xl font-semibold"
+            >
+              {item.name}
+            </Link>
+          ))}
+
+          <button
+            onClick={() => {
+              setIsMenuOpen(false);
+              navigate("/owner");
+            }}
+            className="px-8 py-2 rounded-full border border-white"
+          >
+            Dashboard
+          </button>
+
+          {/* Auth Buttons */}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="px-8 py-2 rounded-full bg-white text-black"
+              >
+                Login
+              </button>
+            </SignInButton>
+          </SignedOut>
+
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+        </div>
+      )}
+
     </nav>
   );
 };
