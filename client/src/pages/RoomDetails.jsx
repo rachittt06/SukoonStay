@@ -15,7 +15,6 @@ const RoomDetails = () => {
       setMainImage(foundRoom.images?.[0]);
     }
   }, [id]);
-
   if (!room)
     return <div className="pt-40 text-center">Room not found</div>;
 
