@@ -249,7 +249,6 @@ const RoomDetails = () => {
           Contact Now
         </button>
       </div>
-
     </div>
   );
 };
