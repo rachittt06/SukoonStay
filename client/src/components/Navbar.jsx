@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { useClerk } from "@clerk/clerk-react";
-
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton
+} from "@clerk/clerk-react";
 
 const Navbar = () => {
+
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Hotels", path: "/rooms" },
@@ -15,7 +20,6 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const { openSignIn } = useClerk();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,8 +27,6 @@ const Navbar = () => {
     if (location.pathname !== "/") {
       setIsScrolled(true);
       return;
-    } else {
-      setIsScrolled(false);
     }
 
     const handleScroll = () => {
@@ -36,14 +38,9 @@ const Navbar = () => {
   }, [location.pathname]);
 
   return (
-    <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500
-      ${
-        isScrolled
-          ? "bg-white/80 backdrop-blur-md shadow-sm"
-          : "bg-transparent"
-      }`}
-    >
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500
+      ${isScrolled ? "bg-white/80 backdrop-blur-md shadow-sm" : "bg-transparent"}`}>
+
       <div className="flex items-center justify-between h-20 px-6 md:px-16 lg:px-24">
 
         {/* Logo */}
@@ -53,7 +50,7 @@ const Navbar = () => {
           </span>
         </Link>
 
-        {/* Desktop Nav + Dashboard */}
+        {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((item, i) => (
             <Link
@@ -71,8 +68,7 @@ const Navbar = () => {
 
           <button
             onClick={() => navigate("/owner")}
-            className={`px-5 py-1.5 rounded-full border text-sm transition
-            ${
+            className={`px-5 py-1.5 rounded-full border text-sm transition ${
               isScrolled
                 ? "border-gray-700 text-gray-700 hover:bg-black hover:text-white"
                 : "border-white/80 text-white hover:bg-white hover:text-black"
@@ -82,39 +78,35 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* Search + Login */}
+        {/* Search + Auth */}
         <div className="hidden md:flex items-center gap-4">
-          
-          {/* Search Icon */}
+
+          {/* Search */}
           <button
+            onClick={() => navigate("/rooms")}
             className={`p-2 rounded-full transition ${
               isScrolled
                 ? "text-gray-700 hover:text-black"
                 : "text-white hover:text-white/80"
             }`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            🔍
           </button>
 
-          <button
-            onClick={openSignIn}
-            className="px-6 py-2 rounded-full text-sm bg-black text-white hover:bg-black/90 transition"
-          >
-            Login
-          </button>
+          {/* Logged Out */}
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="px-6 py-2 rounded-full text-sm bg-black text-white hover:bg-black/90 transition">
+                Login
+              </button>
+            </SignInButton>
+          </SignedOut>
+
+          {/* Logged In */}
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+
         </div>
 
         {/* Mobile Menu Button */}
@@ -128,43 +120,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      <div
-        className={`fixed inset-0 bg-white flex flex-col items-center justify-center gap-6 transition-transform duration-500 md:hidden
-        ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
-      >
-        <img
-          src={assets.closeIcon}
-          alt="close"
-          onClick={() => setIsMenuOpen(false)}
-          className="h-6 absolute top-6 right-6 cursor-pointer"
-        />
-
-        {navLinks.map((item, i) => (
-          <Link
-            key={i}
-            to={item.path}
-            onClick={() => setIsMenuOpen(false)}
-            className="text-lg"
-          >
-            {item.name}
-          </Link>
-        ))}
-
-        <button
-          onClick={() => navigate("/owner")}
-          className="border px-6 py-2 rounded-full text-sm"
-        >
-          Dashboard
-        </button>
-
-        <button
-          onClick={openSignIn}
-          className="bg-black text-white px-8 py-2 rounded-full"
-        >
-          Login
-        </button>
-      </div>
     </nav>
   );
 };

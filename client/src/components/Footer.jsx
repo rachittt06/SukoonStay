@@ -1,7 +1,29 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { assets } from '../assets/assets'
 
 const Footer = () => {
+
+  const [email, setEmail] = useState("")
+
+  const handleSubscribe = (e) => {
+    e.preventDefault()
+
+    if (!email) {
+      alert("Please enter your email")
+      return
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    if (!emailPattern.test(email)) {
+      alert("Enter a valid email")
+      return
+    }
+
+    alert("Subscribed successfully!")
+    setEmail("")
+  }
+
   return (
     <div className='bg-[#F6F9FC] text-gray-500/80 pt-8 px-6 md:px-16 lg:px-24 xl:px-32'>
       
@@ -10,7 +32,6 @@ const Footer = () => {
         {/* Logo + Description */}
         <div className='max-w-80'>
           
-          {/* Replace Logo Image With Text */}
           <h1 className='text-2xl font-bold text-gray-900 mb-4'>
             SukoonStay
           </h1>
@@ -58,16 +79,22 @@ const Footer = () => {
             Subscribe to our newsletter for inspiration and special offers.
           </p>
 
-          <div className='flex items-center mt-4'>
+          <form onSubmit={handleSubscribe} className='flex items-center mt-4'>
             <input
-              type="text"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className='bg-white rounded-l border border-gray-300 h-9 px-3 outline-none w-full'
               placeholder='Your email'
+              required
             />
-            <button className='flex items-center justify-center bg-black h-9 w-9 rounded-r'>
+            <button 
+              type="submit"
+              className='flex items-center justify-center bg-black h-9 w-9 rounded-r active:scale-95 transition'
+            >
               <img src={assets.arrowIcon} alt="arrow" className='w-3.5 invert' />
             </button>
-          </div>
+          </form>
         </div>
 
       </div>
