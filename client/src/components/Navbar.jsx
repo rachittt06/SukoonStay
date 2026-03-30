@@ -102,10 +102,21 @@ const Navbar = () => {
             </SignInButton>
           </SignedOut>
 
-          {/* Logged In */}
-          <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
+<SignedIn>
+  <UserButton afterSignOutUrl="/">
+    <UserButton.MenuItems>
+      <UserButton.Link
+        label="My Bookings"
+        labelIcon={
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
+        }
+        href="/my-bookings"
+      />
+    </UserButton.MenuItems>
+  </UserButton>
+</SignedIn>
 
         </div>
 
@@ -168,8 +179,20 @@ const Navbar = () => {
           </SignedOut>
 
           <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
+  <UserButton afterSignOutUrl="/">
+    <UserButton.MenuItems>
+      <UserButton.Link
+        label="My Bookings"
+        labelIcon={
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
+        }
+        href="/my-bookings"
+      />
+    </UserButton.MenuItems>
+  </UserButton>
+</SignedIn>
         </div>
       )}
 
