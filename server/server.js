@@ -4,7 +4,7 @@ import cors from "cors";
 import connectDB from "./configs/db.js";
 import { clerkMiddleware } from "@clerk/express";
 import clerkWebhooks from "./controllers/clerkWebhooks.js";
-import userRouter from "./routes/userRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 // Models
 import Test from "./models/Test.js";
@@ -106,7 +106,7 @@ app.delete("/delete-user/:id", async (req, res) => {
 app.get("/", (req, res) => {
   res.send("API is working 🚀");
 });
-app.use('/api/user', userRouter)
+app.use('/api/user', userRoutes)
 
 // Server start
 const PORT = 3000;
