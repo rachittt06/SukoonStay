@@ -171,3 +171,37 @@ export const roomsDummyData = [
         "isAvailable": true,
     }
 ]
+export const userBookingsDummyData = [
+    {
+        _id: "b1",
+        hotel: hotelDummyData,
+        room: roomsDummyData[0],
+        checkInDate: "2026-04-20",
+        checkOutDate: "2026-04-22",
+        totalPrice: 4998,
+        paymentStatus: "Paid"
+    },
+    {
+        _id: "b2",
+        hotel: hotelDummyData,
+        room: roomsDummyData[1],
+        checkInDate: "2026-05-01",
+        checkOutDate: "2026-05-03",
+        totalPrice: 11998,
+        paymentStatus: "Pending"
+    },
+    {
+        _id: "b3",
+        hotel: hotelDummyData,
+        room: roomsDummyData[2],
+        checkInDate: "2026-06-10",
+        checkOutDate: "2026-06-12",
+        totalPrice: 7998,
+        paymentStatus: "Paid"
+    }
+]
+export const dashboardDummyData = {
+  totalBookings: 120,
+  totalRevenue: 50000,
+  totalRooms: 10
+}
