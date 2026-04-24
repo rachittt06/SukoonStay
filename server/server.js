@@ -1,19 +1,17 @@
 import express from "express";
-import "dotenv/config";
-import cors from "cors";
-import connectDB from "./configs/db.js";
-import { clerkMiddleware } from "@clerk/express";
 
 const app = express();
-
-// connectDB(); // test off first
-
-app.use(cors());
-app.use(express.json());
-app.use(clerkMiddleware());
 
 app.get("/", (req, res) => {
   res.send("API is working fine 🚀");
 });
 
-export default app;
+// 👇 Only run locally
+if (process.env.NODE_ENV !== "production") {
+  app.listen(3000, () => {
+    console.log("Server running on port 3000");
+  });
+}
+
+// 👇 For Vercel
+export default (req, res) => app(req, res);
