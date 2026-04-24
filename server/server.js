@@ -8,8 +8,12 @@ import clerkWebhooks from "./controllers/clerkWebhooks.js";
 const app = express();
 
 // DB
+// if (process.env.MONGODB_URI) {
+//   connectDB();
+// }
 if (process.env.MONGODB_URI) {
-  connectDB();
+  await connectDB();
+  console.log("DB CONNECTED ✅");
 }
 
 app.use(cors());

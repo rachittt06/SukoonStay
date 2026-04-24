@@ -1,12 +1,16 @@
-import express from "express";
-
-const app = express();
-
+// root route
 app.get("/", (req, res) => {
   res.send("API is working 🚀");
 });
 
-// 👇 IMPORTANT (this is what was missing earlier)
-export default (req, res) => {
-  return app(req, res);
-};
+// ✅ ADD HERE
+app.get("/test-db", async (req, res) => {
+  const Test = (await import("./models/Test.js")).default;
+
+  const data = await Test.create({
+    name: "Rachit",
+    time: new Date()
+  });
+
+  res.json(data);
+});
