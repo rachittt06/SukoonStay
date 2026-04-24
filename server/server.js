@@ -7,7 +7,7 @@ import clerkWebhooks from "./controllers/clerkWebhooks.js";
 
 const app = express();
 
-// ✅ PUT IT HERE (before routes)
+// DB
 if (process.env.MONGODB_URI) {
   connectDB();
 }
@@ -15,14 +15,12 @@ if (process.env.MONGODB_URI) {
 app.use(cors());
 app.use(express.json());
 
-// middleware
-app.use(clerkMiddleware());
+// ✅ ONLY here
+app.use("/api/clerk", clerkMiddleware(), clerkWebhooks);
 
-// routes
-app.use("/api/clerk", clerkWebhooks);
-
+// test route
 app.get("/", (req, res) => {
   res.send("API is working 🚀");
 });
 
-export default (req, res) => app(req, res);
+export default app;
