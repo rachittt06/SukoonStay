@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 const roomSchema = new mongoose.Schema({
     hotel: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Hotel",
+        type: String,   // ✅ FIXED
         required: true
     },
     roomType: {

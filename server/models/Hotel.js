@@ -14,8 +14,7 @@ const hotelSchema = new mongoose.Schema({
         required: true
     },
     owner: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        type: String,   // ✅ FIXED (Clerk ID)
         required: true
     },
     city: {

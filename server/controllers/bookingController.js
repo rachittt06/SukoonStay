@@ -2,7 +2,7 @@ import Booking from "../models/Booking.js";
 import Room from "../models/Room.js";
 import Hotel from "../models/Hotel.js";
 
-// function to check availability of rooms
+// check availability
 const checkAvailibility = async ({ checkInDate, checkOutDate, room }) => {
     try {
         const bookings = await Booking.find({
@@ -19,7 +19,7 @@ const checkAvailibility = async ({ checkInDate, checkOutDate, room }) => {
     }
 };
 
-// API to check availability
+// check availability API
 export const checkAvailabilityAPI = async (req, res) => {
     try {
         const { room, checkInDate, checkOutDate } = req.body;
@@ -37,11 +37,12 @@ export const checkAvailabilityAPI = async (req, res) => {
     }
 };
 
-// API to create booking
+// create booking
 export const createBooking = async (req, res) => {
     try {
         const { room, checkInDate, checkOutDate, guests } = req.body;
-        const user = req.user._id;
+
+        const user = req.auth.userId; // ✅ FIXED
 
         // validate dates
         if (new Date(checkOutDate) <= new Date(checkInDate)) {
@@ -58,12 +59,12 @@ export const createBooking = async (req, res) => {
         if (!isAvailable) {
             return res.json({
                 success: false,
-                message: "Room is not available for the selected dates"
+                message: "Room is not available"
             });
         }
 
         // get room data
-        const roomData = await Room.findById(room).populate("hotel");
+        const roomData = await Room.findById(room);
 
         if (!roomData) {
             return res.json({ success: false, message: "Room not found" });
@@ -73,7 +74,7 @@ export const createBooking = async (req, res) => {
 
         const checkIn = new Date(checkInDate);
         const checkOut = new Date(checkOutDate);
-        const timeDiff = checkOut.getTime() - checkIn.getTime();
+        const timeDiff = checkOut - checkIn;
 
         const nights = Math.max(1, Math.ceil(timeDiff / (1000 * 3600 * 24)));
         totalPrice *= nights;
@@ -82,7 +83,7 @@ export const createBooking = async (req, res) => {
         await Booking.create({
             user,
             room,
-            hotel: roomData.hotel._id,
+            hotel: roomData.hotel, // ✅ string
             guests: +guests,
             checkInDate,
             checkOutDate,
@@ -103,14 +104,13 @@ export const createBooking = async (req, res) => {
     }
 };
 
-// API to get user bookings
+// get user bookings
 export const getUserBookings = async (req, res) => {
     try {
-        const user = req.user._id;
+        const user = req.auth.userId; // ✅ FIXED
 
         const bookings = await Booking.find({ user })
-            .populate("room hotel")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 }); // ❌ removed populate
 
         res.json({ success: true, bookings });
 
@@ -122,10 +122,10 @@ export const getUserBookings = async (req, res) => {
     }
 };
 
-// API to get hotel bookings (dashboard)
+// get hotel bookings
 export const getHotelBookings = async (req, res) => {
     try {
-        const hotel = await Hotel.findOne({ owner: req.user._id });
+        const hotel = await Hotel.findOne({ owner: req.auth.userId }); // ✅ FIXED
 
         if (!hotel) {
             return res.json({
@@ -134,8 +134,7 @@ export const getHotelBookings = async (req, res) => {
             });
         }
 
-        const bookings = await Booking.find({ hotel: hotel._id })
-            .populate("room user")
+        const bookings = await Booking.find({ hotel: hotel.owner }) // ✅ string match
             .sort({ createdAt: -1 });
 
         const totalBookings = bookings.length;
