@@ -5,6 +5,10 @@ import connectDB from "./configs/db.js";
 import { clerkMiddleware } from "@clerk/express";
 import clerkWebhooks from "./controllers/clerkWebhooks.js";
 import userRoutes from "./routes/userRoutes.js";
+import hotelRoutes from "./routes/hotelRoutes.js";
+import roomRoutes from "./routes/roomRoutes.js";
+import connectCloudinary from "./configs/cloudinary.js";
+
 
 // Models
 import Test from "./models/Test.js";
@@ -20,6 +24,8 @@ app.use(express.json());
 connectDB()
   .then(() => console.log("MongoDB Connected ✅"))
   .catch((err) => console.log("MongoDB Error ❌", err));
+
+connectCloudinary();
 
 // Clerk route
 app.use("/api/clerk", clerkMiddleware(), clerkWebhooks);
@@ -107,6 +113,8 @@ app.get("/", (req, res) => {
   res.send("API is working 🚀");
 });
 app.use('/api/user', userRoutes)
+app.use('/api/hotels', hotelRoutes)
+app.use('/api/rooms', roomRoutes)
 
 // Server start
 const PORT = 3000;
