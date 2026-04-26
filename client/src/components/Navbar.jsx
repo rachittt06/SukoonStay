@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { assets } from "../assets/assets";
 import {
   SignInButton,
@@ -7,6 +7,7 @@ import {
   SignedOut,
   UserButton
 } from "@clerk/clerk-react";
+import { useAppContext } from "../context/AppContext";
 
 const Navbar = () => {
 
@@ -20,8 +21,10 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navigate = useNavigate();
   const location = useLocation();
+
+  // ✅ use navigate from context ONLY
+  const { user, navigate, isOwner, setShowHotelReg } = useAppContext();
 
   useEffect(() => {
     if (location.pathname !== "/") {
@@ -66,16 +69,20 @@ const Navbar = () => {
             </Link>
           ))}
 
-          <button
-            onClick={() => navigate("/owner")}
-            className={`px-5 py-1.5 rounded-full border text-sm transition ${
-              isScrolled
-                ? "border-gray-700 text-gray-700 hover:bg-black hover:text-white"
-                : "border-white/80 text-white hover:bg-white hover:text-black"
-            }`}
-          >
-            Dashboard
-          </button>
+          {user && (
+            <button
+              onClick={() =>
+                isOwner ? navigate("/owner") : setShowHotelReg(true)
+              }
+              className={`px-5 py-1.5 rounded-full border text-sm transition ${
+                isScrolled
+                  ? "border-gray-700 text-gray-700 hover:bg-black hover:text-white"
+                  : "border-white/80 text-white hover:bg-white hover:text-black"
+              }`}
+            >
+              {isOwner ? "Dashboard" : "List Your Hotel"}
+            </button>
+          )}
         </div>
 
         {/* Search + Auth */}
@@ -102,21 +109,22 @@ const Navbar = () => {
             </SignInButton>
           </SignedOut>
 
-<SignedIn>
-  <UserButton afterSignOutUrl="/">
-    <UserButton.MenuItems>
-      <UserButton.Link
-        label="My Bookings"
-        labelIcon={
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-            <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-          </svg>
-        }
-        href="/my-bookings"
-      />
-    </UserButton.MenuItems>
-  </UserButton>
-</SignedIn>
+          {/* Logged In */}
+          <SignedIn>
+            <UserButton afterSignOutUrl="/">
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="My Bookings"
+                  labelIcon={
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                      <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    </svg>
+                  }
+                  href="/my-bookings"
+                />
+              </UserButton.MenuItems>
+            </UserButton>
+          </SignedIn>
 
         </div>
 
@@ -131,20 +139,17 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu (Add this) */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center gap-8 text-white z-50">
 
-          {/* Close Button */}
           <button
             onClick={() => setIsMenuOpen(false)}
             className="absolute top-6 right-6 text-white text-3xl font-bold"
-            aria-label="Close menu"
           >
             &times;
           </button>
 
-          {/* Links */}
           {navLinks.map((item, i) => (
             <Link
               key={i}
@@ -166,7 +171,6 @@ const Navbar = () => {
             Dashboard
           </button>
 
-          {/* Auth Buttons */}
           <SignedOut>
             <SignInButton mode="modal">
               <button
@@ -179,23 +183,18 @@ const Navbar = () => {
           </SignedOut>
 
           <SignedIn>
-  <UserButton afterSignOutUrl="/">
-    <UserButton.MenuItems>
-      <UserButton.Link
-        label="My Bookings"
-        labelIcon={
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-            <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-          </svg>
-        }
-        href="/my-bookings"
-      />
-    </UserButton.MenuItems>
-  </UserButton>
-</SignedIn>
+            <UserButton afterSignOutUrl="/">
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="My Bookings"
+                  href="/my-bookings"
+                />
+              </UserButton.MenuItems>
+            </UserButton>
+          </SignedIn>
+
         </div>
       )}
-
     </nav>
   );
 };

@@ -77,7 +77,7 @@ export const cities = [
     "Mumbai",
     "Delhi",
     "Goa",
-    "Shimla",
+    "Jaipur",
 ];
 
 export const exclusiveOffers = [

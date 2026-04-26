@@ -1,9 +1,34 @@
-import express from 'express';
-import { protect } from '../middleware/authMiddleware.js';
-import { registerHotel } from '../controllers/hotelController.js';
+import express from "express";
+import { requireAuth } from "@clerk/express";
+import Hotel from "../models/Hotel.js";
 
-const hotelRoutes = express.Router();
+const router = express.Router();
 
-hotelRoutes.post('/', protect, registerHotel);
+router.post("/", requireAuth(), async (req, res) => {
+  try {
+    const { userId } = req.auth();
+    const { name, phone, address, city } = req.body;
 
-export default hotelRoutes;
+    const hotel = await Hotel.create({
+      owner: userId,
+      name,
+      contact: phone,
+      address,
+      city
+    });
+
+    res.json({
+      success: true,
+      message: "Hotel saved successfully",
+      hotel
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+export default router;

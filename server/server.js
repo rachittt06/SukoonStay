@@ -8,6 +8,7 @@ import clerkWebhooks from "./controllers/clerkWebhooks.js";
 import userRoutes from "./routes/userRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
+import bookingRouter from "./routes/bookingRoutes.js";
 
 import connectCloudinary from "./configs/cloudinary.js";
 
@@ -18,7 +19,10 @@ import User from "./models/User.js";
 const app = express();
 
 // ================= MIDDLEWARE =================
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 
 // ❌ IMPORTANT: webhook ke liye json use nahi hoga
 // isliye webhook route JSON se pehle define karo
@@ -118,9 +122,12 @@ app.delete("/delete-user/:id", async (req, res) => {
 // ================= MAIN ROUTES =================
 
 // ✅ Clerk middleware ONLY here
-app.use("/api/user", clerkMiddleware(), userRoutes);
-app.use("/api/hotels", clerkMiddleware(), hotelRoutes);
-app.use("/api/rooms", clerkMiddleware(), roomRoutes);
+app.use(clerkMiddleware());
+
+app.use("/api/user", userRoutes);
+app.use("/api/hotels", hotelRoutes);
+app.use("/api/rooms", roomRoutes);
+app.use("/api/bookings", bookingRouter);
 
 // ================= HOME =================
 app.get("/", (req, res) => {
@@ -128,7 +135,7 @@ app.get("/", (req, res) => {
 });
 
 // ================= SERVER =================
-const PORT = 3000;
+const PORT = 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} 🚀`);

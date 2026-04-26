@@ -1,13 +1,33 @@
 import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
-import { createRoom, getOwnerRooms, getRooms, toggleRoomAvailability } from "../controllers/roomController.js";
-import upload from "../middleware/uploadMiddleware.js";
+import { requireAuth } from "@clerk/express";
+import Room from "../models/Room.js";
 
-const roomRoutes = express.Router();
+const router = express.Router();
 
-roomRoutes.post("/", protect, upload.array("images", 4), createRoom);
-roomRoutes.get("/", getRooms);
-roomRoutes.get("/owner", protect, getOwnerRooms);
-roomRoutes.post("/toggle-availability", protect, toggleRoomAvailability);
+// CREATE ROOM
+router.post("/", requireAuth(), async (req, res) => {
+  try {
+    const { hotelId, name, price, images } = req.body;
 
-export default roomRoutes;
+    const room = await Room.create({
+      hotelId,
+      name,
+      price,
+      images
+    });
+
+    res.json({
+      success: true,
+      message: "Room created successfully",
+      room
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+export default router;
