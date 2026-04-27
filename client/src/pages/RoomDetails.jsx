@@ -1,29 +1,95 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { roomsDummyData, assets, roomCommonData } from "../assets/assets";
+import { assets, roomCommonData } from "../assets/assets";
 import StarRating from "../components/StarRating";
+import { useAppContext } from "../context/AppContext";
+import { toast } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const RoomDetails = () => {
   const { id } = useParams();
+  const { axios, getToken } = useAppContext();
+  const { user } = useAuth();
   const [room, setRoom] = useState(null);
   const [mainImage, setMainImage] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
 
   useEffect(() => {
-    const foundRoom = roomsDummyData.find((room) => room._id === id);
-    if (!foundRoom) return;
+    const fetchRoom = async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get(`/api/rooms/${id}`);
+        if (data?.success) {
+          setRoom(data.room);
+          setMainImage(data.room?.images?.[0] || null);
+        } else {
+          toast.error(data?.message || "Room not found");
+        }
+      } catch (e) {
+        toast.error(e?.response?.data?.message || e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setRoom(foundRoom);
-    setMainImage(foundRoom.images?.[0] || null);
+    fetchRoom();
   }, [id]);
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const checkAvailability = async () => {
+    if (!checkIn || !checkOut) {
+      toast.error("Please select check-in and check-out dates");
+      return;
+    }
+    if (new Date(checkOut) <= new Date(checkIn)) {
+      toast.error("Check-out date must be after check-in date");
+      return;
+    }
+    try {
+      const { data } = await axios.post("/api/bookings/check-availability", {
+        room: id,
+        checkInDate: checkIn,
+        checkOutDate: checkOut
+      });
+      if (data?.success) {
+        if (data.isAvailable) toast.success("Room is available");
+        else toast.error("Room is not available");
+        return data.isAvailable;
+      }
+      toast.error(data?.message || "Failed to check availability");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e.message);
+    }
+    return false;
+  };
+
+  const bookRoom = async () => {
+    if (!user) return;
+    const available = await checkAvailability();
+    if (!available) return;
+    try {
+      const token = await getToken();
+      const { data } = await axios.post(
+        "/api/bookings/book",
+        { room: id, checkInDate: checkIn, checkOutDate: checkOut, guests },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (data?.success) toast.success(data.message || "Booking created");
+      else toast.error(data?.message || "Failed to book");
+    } catch (e) {
+      toast.error(e?.response?.data?.message || e.message);
+    }
+  };
+
+  if (loading) return <div className="pt-40 text-center">Loading...</div>;
   if (!room)
     return <div className="pt-40 text-center">Room not found</div>;
-
-  const today = new Date().toISOString().split("T")[0];
 
   const facilityIcons = {
     "Free WiFi": assets.wifiIcon,
@@ -37,22 +103,9 @@ const RoomDetails = () => {
     TV: assets.tvIcon,
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!checkIn || !checkOut) {
-      alert("Please select check-in and check-out dates");
-      return;
-    }
-
-    if (new Date(checkOut) <= new Date(checkIn)) {
-      alert("Check-out date must be after check-in date");
-      return;
-    }
-
-    alert(
-      `Checking availability for ${guests} guest(s)\nFrom: ${checkIn}\nTo: ${checkOut}`
-    );
+    await checkAvailability();
   };
 
   return (
@@ -190,12 +243,33 @@ const RoomDetails = () => {
 
           </div>
 
-          <button
-            type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-white px-12 py-3 rounded-xl font-medium w-full md:w-auto transition active:scale-95"
-          >
-            Check Availability
-          </button>
+          <div className="flex flex-col gap-3 w-full md:w-auto">
+            <button
+              type="submit"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-12 py-3 rounded-xl font-medium w-full md:w-auto transition active:scale-95"
+            >
+              Check Availability
+            </button>
+
+            {!user && (
+              <Link
+                to="/signin"
+                className="text-center bg-black hover:bg-black/90 text-white px-12 py-3 rounded-xl font-medium w-full md:w-auto transition active:scale-95"
+              >
+                Login to Book
+              </Link>
+            )}
+
+            {user && (
+              <button
+                type="button"
+                onClick={bookRoom}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-3 rounded-xl font-medium w-full md:w-auto transition active:scale-95"
+              >
+                Book Now
+              </button>
+            )}
+          </div>
 
         </div>
       </form>

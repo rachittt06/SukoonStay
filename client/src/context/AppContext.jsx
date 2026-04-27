@@ -1,8 +1,8 @@
 import axios from "axios";
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser, useAuth } from "@clerk/clerk-react";
 import { toast } from "react-hot-toast";
+import { useAuth } from "./AuthContext.jsx";
 
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -11,8 +11,7 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY || "₹";
   const navigate = useNavigate();
-  const { user } = useUser();
-  const { getToken } = useAuth();
+  const { user, token } = useAuth();
 
   const [isOwner, setIsOwner] = useState(false);
   const [showHotelReg, setShowHotelReg] = useState(false);
@@ -20,11 +19,7 @@ export const AppProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const { data } = await axios.get("/api/user", {
-        headers: {
-          Authorization: `Bearer ${await getToken()}`
-        }
-      });
+      const { data } = await axios.get("/api/user");
 
       if (data.success) {
         setIsOwner(data.role === "hotelOwner");
@@ -38,16 +33,16 @@ export const AppProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && token) {
       fetchUser();
     }
-  }, [user]);
+  }, [user, token]);
 
   const value = {
     currency,
     navigate,
     user,
-    getToken,
+    getToken: async () => token,
     isOwner,
     setIsOwner,
     axios,

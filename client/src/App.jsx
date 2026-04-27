@@ -8,6 +8,8 @@ import RoomDetails from "./pages/RoomDetails";
 import MyBookings from "./pages/MyBookings";
 import HotelReg from "./components/HotelReg";
 import Layout from "./pages/hotelOwner/Layout";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
 
 // ✅ Owner Pages
 import Dashboard from "./pages/hotelOwner/Dashboard";
@@ -34,6 +36,8 @@ const App = () => {
       <div className="min-h-[70vh]">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/rooms" element={<AllRooms />} />
           <Route path="/rooms/:id" element={<RoomDetails />} />
           <Route path="/my-bookings" element={<MyBookings />} />

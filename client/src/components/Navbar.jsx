@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { assets } from "../assets/assets";
-import {
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton
-} from "@clerk/clerk-react";
 import { useAppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
 
@@ -25,6 +20,7 @@ const Navbar = () => {
 
   // ✅ use navigate from context ONLY
   const { user, navigate, isOwner, setShowHotelReg } = useAppContext();
+  const { signout } = useAuth();
 
   useEffect(() => {
     if (location.pathname !== "/") {
@@ -101,30 +97,35 @@ const Navbar = () => {
           </button>
 
           {/* Logged Out */}
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="px-6 py-2 rounded-full text-sm bg-black text-white hover:bg-black/90 transition">
-                Login
-              </button>
-            </SignInButton>
-          </SignedOut>
+          {!user && (
+            <button
+              onClick={() => navigate("/signin")}
+              className="px-6 py-2 rounded-full text-sm bg-black text-white hover:bg-black/90 transition"
+            >
+              Login
+            </button>
+          )}
 
           {/* Logged In */}
-          <SignedIn>
-            <UserButton afterSignOutUrl="/">
-              <UserButton.MenuItems>
-                <UserButton.Link
-                  label="My Bookings"
-                  labelIcon={
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                      <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                    </svg>
-                  }
-                  href="/my-bookings"
-                />
-              </UserButton.MenuItems>
-            </UserButton>
-          </SignedIn>
+          {user && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/my-bookings")}
+                className="text-sm px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50 transition"
+              >
+                My Bookings
+              </button>
+              <button
+                onClick={() => {
+                  signout();
+                  navigate("/");
+                }}
+                className="text-sm px-4 py-2 rounded-full bg-black text-white hover:bg-black/90 transition"
+              >
+                Logout
+              </button>
+            </div>
+          )}
 
         </div>
 
@@ -171,27 +172,41 @@ const Navbar = () => {
             Dashboard
           </button>
 
-          <SignedOut>
-            <SignInButton mode="modal">
+          {!user && (
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                navigate("/signin");
+              }}
+              className="px-8 py-2 rounded-full bg-white text-black"
+            >
+              Login
+            </button>
+          )}
+
+          {user && (
+            <div className="flex flex-col items-center gap-4">
               <button
-                onClick={() => setIsMenuOpen(false)}
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  navigate("/my-bookings");
+                }}
+                className="px-8 py-2 rounded-full border border-white"
+              >
+                My Bookings
+              </button>
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  signout();
+                  navigate("/");
+                }}
                 className="px-8 py-2 rounded-full bg-white text-black"
               >
-                Login
+                Logout
               </button>
-            </SignInButton>
-          </SignedOut>
-
-          <SignedIn>
-            <UserButton afterSignOutUrl="/">
-              <UserButton.MenuItems>
-                <UserButton.Link
-                  label="My Bookings"
-                  href="/my-bookings"
-                />
-              </UserButton.MenuItems>
-            </UserButton>
-          </SignedIn>
+            </div>
+          )}
 
         </div>
       )}

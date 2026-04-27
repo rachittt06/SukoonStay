@@ -1,11 +1,25 @@
-import React from "react";
-import { roomsDummyData } from "../assets/assets";
+import React, { useEffect, useState } from "react";
 import HotelCard from "./HotelCard";
 import Title from "./Title";
 import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../context/AppContext";
 
 const FeatureDestination = () => {
   const navigate = useNavigate();
+  const { axios } = useAppContext();
+  const [rooms, setRooms] = useState([]);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const { data } = await axios.get("/api/rooms");
+        if (data?.success) setRooms(data.rooms || []);
+      } catch {
+        // keep silent on homepage
+      }
+    };
+    fetchRooms();
+  }, [axios]);
 
   return (
     <div className="px-6 md:px-16 lg:px-24 bg-slate-50 py-20">
@@ -16,7 +30,7 @@ const FeatureDestination = () => {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mt-12">
-        {roomsDummyData.slice(0, 4).map((room) => (
+        {rooms.slice(0, 4).map((room) => (
           <HotelCard key={room._id} room={room} />
         ))}
       </div>

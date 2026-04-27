@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from "react";
-import { roomsDummyData, facilityIcons } from "../assets/assets";
+import React, { useEffect, useMemo, useState } from "react";
+import { facilityIcons } from "../assets/assets";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import StarRating from "../components/StarRating";
+import { useAppContext } from "../context/AppContext";
+import { toast } from "react-hot-toast";
 
 const CheckBox = ({ label, selected = false, onChange = () => {} }) => {
   return (
@@ -33,11 +35,15 @@ const RadioButton = ({ label, selected = false, onChange = () => {} }) => {
 const AllRooms = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { axios } = useAppContext();
 
   const destination = searchParams.get("destination") || "";
   const checkIn = searchParams.get("checkIn") || "";
   const checkOut = searchParams.get("checkOut") || "";
   const guests = searchParams.get("guests") || "";
+
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedPrices, setSelectedPrices] = useState([]);
@@ -80,8 +86,25 @@ const AllRooms = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get("/api/rooms");
+        if (data?.success) setRooms(data.rooms || []);
+        else toast.error(data?.message || "Failed to load rooms");
+      } catch (e) {
+        toast.error(e?.response?.data?.message || e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, [axios]);
+
   const filteredRooms = useMemo(() => {
-    let filtered = [...roomsDummyData];
+    let filtered = [...rooms];
 
     // ✅ Destination filter from URL param
     if (destination) {
@@ -131,6 +154,14 @@ const AllRooms = () => {
     setSelectedPrices([]);
     setSortBy("");
   };
+
+  if (loading) {
+    return (
+      <div className="pt-28 px-4 md:px-16 lg:px-24">
+        <p className="text-gray-500">Loading rooms...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-28 px-4 md:px-16 lg:px-24">

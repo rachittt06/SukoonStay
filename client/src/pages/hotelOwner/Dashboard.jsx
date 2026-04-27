@@ -1,17 +1,40 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Title from '../../components/Title'
-import { assets, dashboardDummyData } from '../../assets/assets'
+import { assets } from '../../assets/assets'
+import { useAppContext } from '../../context/AppContext'
+import { toast } from 'react-hot-toast'
 
 const Dashboard = () => {
 
-    const [dashboardData, setDashboardData] = useState(dashboardDummyData)
+    const { axios, getToken } = useAppContext()
+    const [dashboardData, setDashboardData] = useState(null)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchDashboard = async () => {
+            try {
+                setLoading(true)
+                const token = await getToken()
+                const { data } = await axios.get('/api/bookings/hotel', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+                if (data?.success) setDashboardData(data.dashboardData)
+                else toast.error(data?.message || 'Failed to load dashboard')
+            } catch (e) {
+                toast.error(e?.response?.data?.message || e.message)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchDashboard()
+    }, [axios, getToken])
 
     return (
         <div>
             <Title 
-                align='left' 
-                font='outfit' 
-                title='Dashboard' 
+                align='left'
+                font='outfit'
+                title='Dashboard'
                 subTitle='Monitor your room listings, track bookings and analyze revenue-all in one place. Stay updated with real-time insights to ensure smooth operations.'
             />
 
@@ -21,15 +44,15 @@ const Dashboard = () => {
                 {/* Total Bookings */}
                 <div className='bg-primary/3 border border-primary/10 rounded flex p-4 pr-8'>
                     <img 
-                        src={assets.totalBookingIcon} 
-                        alt=""  
+                        src={assets.totalBookingIcon}
+                        alt=""
                         className='max-sm:hidden h-10'
                     />
 
                     <div className='flex flex-col sm:ml-4 font-medium'>
                         <p className='text-blue-500 text-lg'>Total Bookings</p>
                         <p className='text-neutral-400 text-base'>
-                            {dashboardData?.totalBookings}
+                            {loading ? "..." : (dashboardData?.totalBookings || 0)}
                         </p>
                     </div>
                 </div>
@@ -37,15 +60,15 @@ const Dashboard = () => {
                 {/* Total Revenue */}
                 <div className='bg-primary/3 border border-primary/10 rounded flex p-4 pr-8'>
                     <img 
-                        src={assets.totalRevenueIcon} 
-                        alt=""  
+                        src={assets.totalRevenueIcon}
+                        alt=""
                         className='max-sm:hidden h-10'
                     />
 
                     <div className='flex flex-col sm:ml-4 font-medium'>
                         <p className='text-blue-500 text-lg'>Total Revenue</p>
                         <p className='text-neutral-400 text-base'>
-                          ₹ {dashboardData?.totalRevenue}
+                            ₹ {loading ? "..." : (dashboardData?.totalRevenue || 0)}
                         </p>
                     </div>
                 </div>
@@ -53,14 +76,19 @@ const Dashboard = () => {
             </div>
 
             {/* Table */}
-            <h2 className='text-xl text-blue-950/70 font-medium mb-5'>Recent Bookings</h2>
+            <h2 className='text-xl text-blue-950/70 font-medium mb-5'>
+                Recent Bookings
+            </h2>
 
             <div className='w-full max-w-3xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll'>
                 
                 <table className='w-full'>
+                    
                     <thead className='bg-gray-50'>
                         <tr>
-                            <th className='py-3 px-4 text-gray-800 font-medium'>User Name</th>
+                            <th className='py-3 px-4 text-gray-800 font-medium'>
+                                User Name
+                            </th>
 
                             <th className='py-3 px-4 text-gray-800 font-medium max-sm:hidden'>
                                 Room Name
@@ -70,7 +98,7 @@ const Dashboard = () => {
                                 Total Amount
                             </th>
 
-                            {/* ✅ Payment Status with arrows */}
+                            {/* Payment Status */}
                             <th className='py-3 px-4 text-gray-800 font-medium text-center'>
                                 <div className='flex items-center justify-center gap-1'>
                                     Payment Status
@@ -82,8 +110,40 @@ const Dashboard = () => {
                             </th>
                         </tr>
                     </thead>
-                </table>
 
+                    <tbody className='text-sm'>
+                        {dashboardData?.bookings?.map((item, index) => (
+                            <tr key={index}>
+                                
+                                <td className='py-3 px-4 text-gray-700 border-t border-gray-300'>
+                                    {item.user?.userName}
+                                </td>
+
+                                <td className='py-3 px-4 text-gray-700 border-t border-gray-300 max-sm:hidden'>
+                                    {item.room?.roomType}
+                                </td>
+
+                                <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
+                                    ₹ {item.totalPrice}
+                                </td>
+
+                                <td className='py-3 px-4 border-t border-gray-300 text-center'>
+                                    <button
+                                        className={`py-1 px-3 text-xs rounded-full ${
+                                            item.isPaid
+                                                ? 'bg-green-100 text-green-600'
+                                                : 'bg-amber-200 text-yellow-600'
+                                        }`}
+                                    >
+                                        {item.isPaid ? 'Completed' : 'Pending'}
+                                    </button>
+                                </td>
+
+                            </tr>
+                        ))}
+                    </tbody>
+
+                </table>
             </div>
         </div>
     )
