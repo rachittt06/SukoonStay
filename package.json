@@ -1,0 +1,12 @@
+{
+  "name": "SukoonStay",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "devDependencies": {
+    "vite": "^8.0.10"
+  }
+}
