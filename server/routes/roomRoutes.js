@@ -1,33 +1,25 @@
 import express from "express";
-import { requireAuth } from "@clerk/express";
-import Room from "../models/Room.js";
+import { protect } from "../middleware/authMiddleware.js";
+import {
+  createRoom,
+  getRooms,
+  getRoomById,
+  getOwnerRooms,
+  toggleRoomAvailability
+} from "../controllers/roomController.js";
 
 const router = express.Router();
 
-// CREATE ROOM
-router.post("/", requireAuth(), async (req, res) => {
-  try {
-    const { hotelId, name, price, images } = req.body;
+// Public
+router.get("/", getRooms);
 
-    const room = await Room.create({
-      hotelId,
-      name,
-      price,
-      images
-    });
+// Owner (authenticated)
+// IMPORTANT: put static routes before "/:id" (otherwise "owner" is treated as an id)
+router.get("/owner", protect, getOwnerRooms);
+router.post("/", protect, createRoom);
+router.post("/toggle-availability", protect, toggleRoomAvailability);
 
-    res.json({
-      success: true,
-      message: "Room created successfully",
-      room
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-});
+// Public (by id) - keep this after static routes like "/owner"
+router.get("/:id", getRoomById);
 
 export default router;

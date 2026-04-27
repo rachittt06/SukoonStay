@@ -6,14 +6,14 @@ export const registerHotel = async (req, res) => {
         const { name, address, contact, city } = req.body;
 
         // ✅ auth check (safety)
-        if (!req.auth?.userId) {
+        if (!req.user?.id) {
             return res.status(401).json({
                 success: false,
                 message: "Unauthorized"
             });
         }
 
-        const owner = req.auth.userId;
+        const owner = req.user.id;
 
         // ✅ check existing hotel
         const existingHotel = await Hotel.findOne({ owner });
@@ -35,11 +35,7 @@ export const registerHotel = async (req, res) => {
         });
 
         // ✅ update user role (safe)
-        await User.findOneAndUpdate(
-            { clerkId: owner },
-            { role: "hotelOwner" },
-            { new: true }
-        );
+        await User.findByIdAndUpdate(owner, { role: "hotelOwner" }, { new: true });
 
         res.json({
             success: true,

@@ -2,15 +2,12 @@ import express from "express";
 import "dotenv/config";
 import cors from "cors";
 import connectDB from "./configs/db.js";
-import { clerkMiddleware } from "@clerk/express";
-import clerkWebhooks from "./controllers/clerkWebhooks.js";
 
 import userRoutes from "./routes/userRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
-
-import connectCloudinary from "./configs/cloudinary.js";
+import authRoutes from "./routes/authRoutes.js";
 
 // Models (optional test)
 import Test from "./models/Test.js";
@@ -19,20 +16,23 @@ import User from "./models/User.js";
 const app = express();
 
 // ================= MIDDLEWARE =================
+const allowedOrigins = new Set([
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  process.env.CLIENT_URL,
+].filter(Boolean));
+
 app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow non-browser requests (curl/postman) and configured frontend origins.
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
 }));
-
-// ❌ IMPORTANT: webhook ke liye json use nahi hoga
-// isliye webhook route JSON se pehle define karo
-
-// ✅ CLERK WEBHOOK (FIXED)
-app.post(
-  "/api/clerk",
-  express.raw({ type: "application/json" }),
-  clerkWebhooks
-);
 
 // ✅ normal APIs ke liye json
 app.use(express.json());
@@ -41,8 +41,6 @@ app.use(express.json());
 connectDB()
   .then(() => console.log("MongoDB Connected ✅"))
   .catch((err) => console.log("MongoDB Error ❌", err));
-
-connectCloudinary();
 
 // ================= TEST APIs =================
 
@@ -120,10 +118,7 @@ app.delete("/delete-user/:id", async (req, res) => {
 });
 
 // ================= MAIN ROUTES =================
-
-// ✅ Clerk middleware ONLY here
-app.use(clerkMiddleware());
-
+app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/hotels", hotelRoutes);
 app.use("/api/rooms", roomRoutes);
@@ -132,13 +127,6 @@ app.use("/api/bookings", bookingRouter);
 // ================= HOME =================
 app.get("/", (req, res) => {
   res.send("API is working 🚀");
-});
-
-// ================= SERVER =================
-const PORT = 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} 🚀`);
 });
 
 export default app;

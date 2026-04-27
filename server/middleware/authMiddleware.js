@@ -1,34 +1,32 @@
 import User from "../models/User.js";
+import jwt from "jsonwebtoken";
 
 export const protect = async (req, res, next) => {
     try {
-        const userId = req.auth?.userId;
+        const header = req.headers.authorization || "";
+        const token = header.startsWith("Bearer ") ? header.slice(7) : null;
 
-        if (!userId) {
+        if (!token) {
             return res.status(401).json({
                 success: false,
                 message: "Not authorized"
             });
         }
 
-        // ✅ Clerk ID se user fetch karo
-        const user = await User.findOne({ clerkId: userId });
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
+        const secret = process.env.JWT_SECRET;
+        if (!secret) {
+            return res.status(500).json({ success: false, message: "JWT_SECRET not configured" });
         }
 
-        req.user = user; // optional but useful
+        const decoded = jwt.verify(token, secret);
+        req.user = { id: decoded.id, role: decoded.role };
+
+        // Optional: attach user document for convenience
+        req.userDoc = await User.findById(decoded.id);
         next();
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
+        return res.status(401).json({ success: false, message: "Invalid token" });
     }
 };

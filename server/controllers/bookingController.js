@@ -1,6 +1,77 @@
 import Booking from "../models/Booking.js";
 import Room from "../models/Room.js";
 import Hotel from "../models/Hotel.js";
+import User from "../models/User.js";
+
+const shapeBooking = async (bookingDoc) => {
+    const booking = bookingDoc?.toObject ? bookingDoc.toObject() : bookingDoc;
+    if (!booking) return null;
+
+    const [roomDoc, hotelDoc, userDoc, ownerDoc] = await Promise.all([
+        Room.findById(booking.room),
+        Hotel.findOne({ owner: booking.hotel }),
+        User.findById(booking.user),
+        User.findById(booking.hotel),
+    ]);
+
+    const room = roomDoc
+        ? {
+            ...roomDoc.toObject(),
+            hotel: hotelDoc
+                ? {
+                    _id: hotelDoc._id,
+                    name: hotelDoc.name,
+                    address: hotelDoc.address,
+                    contact: hotelDoc.contact,
+                    city: hotelDoc.city,
+                    owner: ownerDoc
+                        ? {
+                            _id: String(ownerDoc._id),
+                            name: ownerDoc.username,
+                            userName: ownerDoc.username,
+                            image: ownerDoc.image
+                        }
+                        : undefined
+                }
+                : undefined
+        }
+        : undefined;
+
+    const hotel = hotelDoc
+        ? {
+            _id: hotelDoc._id,
+            name: hotelDoc.name,
+            address: hotelDoc.address,
+            contact: hotelDoc.contact,
+            city: hotelDoc.city,
+            owner: ownerDoc
+                ? {
+                    _id: String(ownerDoc._id),
+                    name: ownerDoc.username,
+                    userName: ownerDoc.username,
+                    image: ownerDoc.image
+                }
+                : undefined
+        }
+        : undefined;
+
+    const user = userDoc
+        ? {
+            _id: String(userDoc._id),
+            name: userDoc.username,
+            userName: userDoc.username,
+            image: userDoc.image
+        }
+        : { _id: booking.user, userName: "Guest" };
+
+    return {
+        ...booking,
+        hotel,
+        room,
+        user,
+        paymentStatus: booking.isPaid ? "Paid" : "Pending"
+    };
+};
 
 // check availability
 const checkAvailibility = async ({ checkInDate, checkOutDate, room }) => {
@@ -42,7 +113,7 @@ export const createBooking = async (req, res) => {
     try {
         const { room, checkInDate, checkOutDate, guests } = req.body;
 
-        const user = req.auth.userId; // ✅ FIXED
+        const user = req.user.id;
 
         // validate dates
         if (new Date(checkOutDate) <= new Date(checkInDate)) {
@@ -107,12 +178,13 @@ export const createBooking = async (req, res) => {
 // get user bookings
 export const getUserBookings = async (req, res) => {
     try {
-        const user = req.auth.userId; // ✅ FIXED
+        const user = req.user.id;
 
         const bookings = await Booking.find({ user })
             .sort({ createdAt: -1 }); // ❌ removed populate
 
-        res.json({ success: true, bookings });
+        const shaped = await Promise.all(bookings.map(shapeBooking));
+        res.json({ success: true, bookings: shaped.filter(Boolean) });
 
     } catch (error) {
         res.json({
@@ -125,7 +197,7 @@ export const getUserBookings = async (req, res) => {
 // get hotel bookings
 export const getHotelBookings = async (req, res) => {
     try {
-        const hotel = await Hotel.findOne({ owner: req.auth.userId }); // ✅ FIXED
+        const hotel = await Hotel.findOne({ owner: req.user.id });
 
         if (!hotel) {
             return res.json({
@@ -134,12 +206,12 @@ export const getHotelBookings = async (req, res) => {
             });
         }
 
-        const bookings = await Booking.find({ hotel: hotel.owner }) // ✅ string match
-            .sort({ createdAt: -1 });
+        const bookings = await Booking.find({ hotel: hotel.owner }).sort({ createdAt: -1 });
+        const shapedBookings = (await Promise.all(bookings.map(shapeBooking))).filter(Boolean);
 
-        const totalBookings = bookings.length;
+        const totalBookings = shapedBookings.length;
 
-        const totalRevenue = bookings.reduce(
+        const totalRevenue = shapedBookings.reduce(
             (acc, booking) => acc + booking.totalPrice,
             0
         );
@@ -149,7 +221,7 @@ export const getHotelBookings = async (req, res) => {
             dashboardData: {
                 totalBookings,
                 totalRevenue,
-                bookings
+                bookings: shapedBookings
             }
         });
 

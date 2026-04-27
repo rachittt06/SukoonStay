@@ -3,14 +3,14 @@ import User from "../models/User.js";
 // GET /api/user/
 export const getUserData = async (req, res) => {
     try {
-        if (!req.auth?.userId) {
+        if (!req.user?.id) {
             return res.status(401).json({
                 success: false,
                 message: "Unauthorized"
             });
         }
 
-        const user = await User.findOne({ clerkId: req.auth.userId });
+        const user = await User.findById(req.user.id);
 
         if (!user) {
             return res.json({
@@ -36,7 +36,7 @@ export const getUserData = async (req, res) => {
 // STORE user recently searched cities
 export const storeRecentSearchedCities = async (req, res) => {
     try {
-        if (!req.auth?.userId) {
+        if (!req.user?.id) {
             return res.status(401).json({
                 success: false,
                 message: "Unauthorized"
@@ -45,7 +45,7 @@ export const storeRecentSearchedCities = async (req, res) => {
 
         const { recentSearchedCities } = req.body;
 
-        const user = await User.findOne({ clerkId: req.auth.userId });
+        const user = await User.findById(req.user.id);
 
         if (!user) {
             return res.json({
