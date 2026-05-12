@@ -69,19 +69,94 @@ const RoomDetails = () => {
     return false;
   };
 
+  const loadRazorpayScript = () =>
+    new Promise((resolve) => {
+      if (typeof window !== "undefined" && window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+
   const bookRoom = async () => {
     if (!user) return;
     const available = await checkAvailability();
     if (!available) return;
+
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        "/api/bookings/book",
+        "/api/payments/create-order",
         { room: id, checkInDate: checkIn, checkOutDate: checkOut, guests },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (data?.success) toast.success(data.message || "Booking created");
-      else toast.error(data?.message || "Failed to book");
+
+      if (!data?.success) {
+        toast.error(data?.message || "Could not start payment");
+        return;
+      }
+
+      const razorpayKey = data.key || import.meta.env.VITE_RAZORPAY_KEY;
+      if (!razorpayKey) {
+        toast.error("Payment is not configured (missing Razorpay key)");
+        return;
+      }
+
+      const scriptOk = await loadRazorpayScript();
+      if (!scriptOk) {
+        toast.error("Failed to load payment gateway");
+        return;
+      }
+
+      const options = {
+        key: razorpayKey,
+        amount: data.order.amount,
+        currency: data.order.currency,
+        order_id: data.order.id,
+        name: "SukoonStay",
+        description: "Hotel stay booking",
+        handler: async function (response) {
+          try {
+            const { data: verifyData } = await axios.post(
+              "/api/payments/verify",
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                room: id,
+                checkInDate: checkIn,
+                checkOutDate: checkOut,
+                guests,
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (verifyData?.success) {
+              toast.success(verifyData.message || "Booking confirmed");
+            } else {
+              toast.error(verifyData?.message || "Verification failed");
+            }
+          } catch (e) {
+            toast.error(e?.response?.data?.message || e.message);
+          }
+        },
+        prefill: {
+          name: user?.username,
+          email: user?.email,
+        },
+        theme: { color: "#ea580c" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response) {
+        toast.error(
+          response.error?.description || response.error?.reason || "Payment failed"
+        );
+      });
+      rzp.open();
     } catch (e) {
       toast.error(e?.response?.data?.message || e.message);
     }

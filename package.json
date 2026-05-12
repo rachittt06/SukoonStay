@@ -2,6 +2,9 @@
   "name": "SukoonStay",
   "private": true,
   "version": "1.0.0",
+  "scripts": {
+    "server": "npm start -w server"
+  },
   "workspaces": [
     "server",
     "client"

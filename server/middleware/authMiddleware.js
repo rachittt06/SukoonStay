@@ -3,10 +3,12 @@ import jwt from "jsonwebtoken";
 
 export const protect = async (req, res, next) => {
     try {
+        console.log("Auth middleware called for:", req.path);
         const header = req.headers.authorization || "";
         const token = header.startsWith("Bearer ") ? header.slice(7) : null;
 
         if (!token) {
+            console.log("No token provided");
             return res.status(401).json({
                 success: false,
                 message: "Not authorized"

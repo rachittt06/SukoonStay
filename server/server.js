@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 
 // Models (optional test)
@@ -123,6 +124,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/hotels", hotelRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bookings", bookingRouter);
+app.use("/api/payments", paymentRoutes);
 
 // ================= HOME =================
 app.get("/", (req, res) => {
